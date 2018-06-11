@@ -1,0 +1,102 @@
+
+<html>
+<head>
+<meta charset="utf-8">
+<title> JS Executor </title>
+<script type="text/javascript">
+var executor = null;
+var exectime;
+var init_storage = function(){
+     
+}
+var init_executor = function (){
+    if (executor == null){
+      executor = new Worker("executor.js")
+      exectime = new Date()
+      var ele = document.getElementById("output")
+      ele.value = ele.value + "** Execution started at " +
+          Date().toString() + ".\n"
+      executor.addEventListener("message", 
+        function (event){
+          if (event.data[0] == '+' && event.data[1] == '+'){
+             ele.value += event.data.substring(2) + "\n"
+          } else {
+             exectime = (new Date()) - exectime
+             ele.value = ele.value + "** Execution finished at " +
+                Date().toString() + ".\n"
+             ele.value = ele.value + "** Elapsed time = " + exectime + " ms\n"
+             executor.terminate()
+             executor = null
+             ele.scrollTop = ele.scrollHeight;
+          }
+          if (Math.random() < 0.2)
+              ele.scrollTop = ele.scrollHeight;
+        }, true)
+    } else {
+        var ele = document.getElementById("output")
+        ele.value += "** Another program is running!\n"
+    }
+    var the_prog = document.getElementById("prog")
+    executor.postMessage(the_prog.value);
+}
+var terminate = function(){
+    var ele = document.getElementById("output")
+    if (executor == null){
+       ele.value = ele.value + "** No program is running.\n";
+    } else {
+       exectime = (new Date()) - exectime
+       ele.value = ele.value + "** Execution was terminated at " +
+       Date().toString() + ".\n"
+       ele.value = ele.value + "** Elapsed time = " + exectime + " ms\n"
+       executor.terminate()
+       executor = null
+   }
+   ele.scrollTop = ele.scrollHeight;
+}
+var clear_output = function(){
+    var ele = document.getElementById("output")
+    if (window.confirm("Is it OK to clear the output?")){
+        ele.value = ""
+    }
+}
+var memSave = function(idx){
+    var the_prog = document.getElementById("prog")
+    localStorage.setItem("Memory" + idx, the_prog.value)
+}
+var memLoad = function(idx){
+    var the_prog = document.getElementById("prog")
+    the_prog.value = localStorage.getItem("Memory" + idx)
+}
+</script>
+</head>
+<body">
+<h4> JS Executor. </h4>
+<input type="button" value="Clear Output" onclick="clear_output()"> 
+<input type="button" value="Run" onclick="init_executor()"> 
+<input type="button" value="Stop" onclick="terminate()"> <br>
+<input type="button" value="MemSave 1" onclick="memSave(1)">
+<input type="button" value="MemSave 2" onclick="memSave(2)">
+<input type="button" value="MemSave 3" onclick="memSave(3)">
+<input type="button" value="MemSave 4" onclick="memSave(4)">
+<input type="button" value="MemSave 5" onclick="memSave(5)">
+<br>
+<input type="button" value="MemLoad 1" onclick="memLoad(1)">
+<input type="button" value="MemLoad 2" onclick="memLoad(2)">
+<input type="button" value="MemLoad 3" onclick="memLoad(3)">
+<input type="button" value="MemLoad 4" onclick="memLoad(4)">
+<input type="button" value="MemLoad 5" onclick="memLoad(5)">
+<br>
+<textarea cols="80" rows="10" id="prog">
+var foo = function(){
+   var i
+   for (i = 0; i < 100; i++){
+     puts(i)
+   }
+}
+foo()
+</textarea>
+<textarea cols="80" rows="10" id="output">
+</textarea>
+</body>
+</html>
+

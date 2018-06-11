@@ -1,0 +1,634 @@
+
+<html>
+<head>
+<meta charset="utf-8">
+<title> JS Executor </title>
+<style type="text/css" media="screen">
+    #editor { 
+        width: 580pt;
+        height: 250pt;
+        font-size: 11pt;
+    }
+</style>
+<style type="text/css">
+  body {background-color: lightgray;}
+  h3 { color: blue; }
+  .idfont {font-family: courier, monospace}
+  .forprog {font-family: courier, monospace; font-weight: bold; font-size: large }
+  span.tt {font-family: courier, monospace;}
+</style>
+<script type="text/javascript">
+var executor = null;
+var exectime;
+var init_storage = function(){
+     
+}
+var init_executor = function (){
+   if (executor == null){
+      input = document.getElementById("input_str").value
+      var inputx = "var input_string = " + '"' + input + '"'
+      inputx = inputx.replace(/\n/g, "\\n") + "\n"
+      console.log(inputx)
+      executor = new Worker("executor.js")
+      exectime = new Date()
+      var ele = document.getElementById("output")
+      ele.value = ele.value + "** Execution started at " +
+          Date().toString() + ".\n"
+      executor.addEventListener("message", 
+        function (event){
+          if (event.data[0] == '+' && event.data[1] == '+'){
+             ele.value += event.data.substring(2) + "\n"
+          } else if (event.data[0] == '+' && event.data[1] == 'g'
+                && event.data[2] == '0'){
+             myclear(); 
+          } else if (event.data[0] == '+' && event.data[1] == 'g'
+             && event.data[2] == '1'){
+             var [pt1, pt2] = JSON.parse(event.data.substring(3))
+             var x1 = pt1[0] * sizeX
+             var y1 = (1 - pt1[1]) * sizeY
+             var x2 = pt2[0] * sizeX
+             var y2 = (1 - pt2[1]) * sizeY
+             ct.fillStyle = '#000000'
+             ct.beginPath()
+             ct.moveTo(x1, y1)
+             ct.lineTo(x2, y2)
+             ct.stroke()
+          } else if (event.data[0] == '+' && event.data[1] == 'g'
+             && event.data[2] == '2'){
+              var [pt1, pt2] = JSON.parse(event.data.substring(3))
+              ct.fillStyle = '#000000'
+              var x1 = pt1[0] * sizeX
+              var y1 = (1 - pt1[1]) * sizeY
+              var x2 = pt2[0] * sizeX
+              var y2 = (1 - pt2[1]) * sizeY
+              ct.beginPath()
+              ct.moveTo(x1, y1)
+              ct.lineTo(x1, y2)
+              ct.lineTo(x2, y2)
+              ct.lineTo(x2, y1)
+              ct.lineTo(x1, y1)
+              ct.fill()
+          } else if (event.data[0] == '+' && event.data[1] == 'g'
+             && event.data[2] == '3'){
+              var [pt1, pt2, pt3] = JSON.parse(event.data.substring(3))
+              draw_triangle_c(pt1, pt2, pt3, '#000000')
+          } else if (event.data[0] == '+' && event.data[1] == 'g'
+             && event.data[2] == '4'){
+              var [pt1, pt2, pt3] = JSON.parse(event.data.substring(3))
+              draw_triangle_c(pt1, pt2, pt3, '#ffffff')
+          } else if (event.data[0] == '+' && event.data[1] == 'b'
+              && event.data[2] == '0'){
+              myclear();
+              board_state = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+              myclear_board();
+              moves_queue = []
+              board_finished = false;
+              setTimeout(function(){play_moves_iter(0)}, 100);
+          } else if (event.data[0] == '+' && event.data[1] == 'b'
+              && event.data[2] == '1'){
+              moves_queue.push(JSON.parse(event.data.substring(3)))
+              // board_state = JSON.parse(event.data.substring(3))
+              myclear_board();
+          } else if (event.data[0] == '+' && event.data[1] == 'b'
+              && event.data[2] == '2'){
+              moves_queue.push(event.data[3])
+          } else {
+             exectime = (new Date()) - exectime
+             ele.value = ele.value + "** Execution finished at " +
+                Date().toString() + ".\n"
+             ele.value = ele.value + "** Elapsed time = " + exectime + " ms\n"
+             executor.terminate()
+             executor = null
+             ele.scrollTop = ele.scrollHeight;
+             board_finished = true
+          }
+          if (Math.random() < 0.2)
+              ele.scrollTop = ele.scrollHeight;
+        }, true)
+    } else {
+        var ele = document.getElementById("output")
+        ele.value += "** Another program is running!\n"
+    }
+    executor.postMessage(inputx + editor.getValue());
+}
+var terminate = function(){
+    var ele = document.getElementById("output")
+    if (executor == null){
+       ele.value = ele.value + "** No program is running.\n";
+    } else {
+       exectime = (new Date()) - exectime
+       ele.value = ele.value + "** Execution was terminated at " +
+       Date().toString() + ".\n"
+       ele.value = ele.value + "** Elapsed time = " + exectime + " ms\n"
+       executor.terminate()
+       executor = null
+    }
+    board_finished = true			      
+    ele.scrollTop = ele.scrollHeight;
+}
+var clear_output = function(){
+    var ele = document.getElementById("output")
+    if (window.confirm("Is it OK to clear the output?")){
+        ele.value = ""
+    }
+}
+var memSave = function(idx){
+    var m = editor.getValue()
+    if (m.length != 0){
+      localStorage.setItem("Memory" + idx, m)
+    } else {
+      localStorage.removeItem("Memory" + idx)
+    }
+    refreshMemID()
+}
+var memLoad = function(idx){
+    back_stack.push(editor.getValue());
+    show_stack_indicator()	     
+    editor.setValue(localStorage.getItem("Memory" + idx))
+    var nlines = editor.session.getLength()
+    editor.gotoLine(nlines)
+    refreshMemID()			      
+}
+var makeIdHeader = function(data){
+   var i
+   var s = ""
+   for (i = 0; i < data.length; i++){
+     if(data[i] != "\n" && data[i] != "\t")
+         s = s + data[i]
+     if (s.length > 30) break;
+   }		   
+   return s + "..."
+}
+var refreshMemID = function(){
+    var i
+    for (i = 1; i <= 5; i++){
+	var data = localStorage.getItem("Memory" + i)
+        if (data != null)
+		     document.getElementById("memid" + i).innerHTML =
+		     makeIdHeader(data)
+	else 	     
+	    document.getElementById("memid" + i).innerHTML = "** No Data **"
+    }
+}
+var download_file = function (){
+    var uri = "data:x-application/text," + escape(editor.getValue())
+    var downloadLink = document.createElement("a");
+    downloadLink.href = uri;
+    downloadLink.download = "myprog.js";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+var read_file = function (fname) {
+    var httpObj = new XMLHttpRequest();
+    httpObj.onreadystatechange = function (){
+	if (httpObj.readyState == 4 && httpObj.status == 200){
+	    back_stack.push(editor.getValue());
+	    show_stack_indicator()	     
+	    editor.setValue(httpObj.responseText);
+	    var nlines = editor.session.getLength()
+	    editor.gotoLine(nlines)
+	}
+    };
+    httpObj.open("get", fname, true);
+    httpObj.send(null);
+};
+var back_stack = [];
+var forward_stack = [];
+		     
+var show_stack_indicator = function(){
+    document.getElementById("stack_indicator").innerHTML = 
+	(back_stack.length + ":" + forward_stack.length);
+}
+var pop_stack = function(){
+    if (back_stack.length > 0){
+	forward_stack.push(editor.getValue());
+	editor.setValue(back_stack.pop());
+	show_stack_indicator();
+        var nlines = editor.session.getLength()
+	editor.gotoLine(nlines)
+    }
+    
+}
+
+var push_stack = function(){
+    if (forward_stack.length > 0){
+	back_stack.push(editor.getValue());
+	editor.setValue(forward_stack.pop());
+	show_stack_indicator();
+        var nlines = editor.session.getLength()
+	editor.gotoLine(nlines)
+    }
+    
+}
+var pushCurrent = function(){
+    back_stack.push(editor.getValue());
+    editor.setValue("");
+    show_stack_indicator();
+}
+
+var deleteCurrent = function(){
+    if (!window.confirm("Do you really want to destroy the current buffer?"))
+       return;
+    if (back_stack.length > 0){
+	editor.setValue(back_stack.pop());
+    } else if (forward_stack.length > 0){
+	editor.setValue(forward_stack.pop());
+    } else {
+	editor.setValue("");
+    }
+    var nlines = editor.session.getLength()
+    editor.gotoLine(nlines)
+    show_stack_indicator();
+}
+
+var dupulicateCurrent = function(){
+    back_stack.push(editor.getValue());
+    show_stack_indicator();
+}
+
+var draw_triangle_c = function(pt1, pt2, pt3, c){
+  var x1 = pt1[0] * sizeX
+  var y1 = (1 - pt1[1]) * sizeY
+  var x2 = pt2[0] * sizeX
+  var y2 = (1 - pt2[1]) * sizeY
+  var x3 = pt3[0] * sizeX
+  var y3 = (1 - pt3[1]) * sizeY
+  ct.fillStyle = c
+  ct.beginPath()
+  ct.moveTo(x1, y1)
+  ct.lineTo(x2, y2)
+  ct.lineTo(x3, y3)
+  ct.lineTo(x1, y1)
+  ct.fill()
+}
+
+var save_buffer = function(){
+    localStorage.setItem("Buffer_Backup",
+        JSON.stringify([back_stack, forward_stack, editor.getValue()]))
+}
+
+window.onbeforeunload = save_buffer
+    
+var resume_buffer = function(){
+    var saved_buffer = localStorage.getItem("Buffer_Backup")
+    if ( saved_buffer != null){
+      if (confirm("You have some saved buffer. Would you like to resume it?")){
+        saved_buffer = JSON.parse(saved_buffer)
+        back_stack = saved_buffer[0]
+        forward_stack = saved_buffer[1]
+        editor.setValue(saved_buffer[2])
+        var nlines = editor.session.getLength()
+        editor.gotoLine(nlines)
+        show_stack_indicator()
+      }
+    }
+}
+</script>
+</head>
+<body onload="resume_buffer(); refreshMemID(); myclear(); ">
+  <h4> JS Executor. </h4>
+<table>
+  <tr>
+    <td>
+      <input type="button" value="MemSave 1" onclick="memSave(1)">
+      <input type="button" value="MemLoad 1" onclick="memLoad(1)">
+      <span class="idfont" id="memid1"> No Data </span>
+      <br>
+      <input type="button" value="MemSave 2" onclick="memSave(2)">
+      <input type="button" value="MemLoad 2" onclick="memLoad(2)">
+      <span class="idfont" id="memid2"> No Data </span>
+      <br>
+      <input type="button" value="MemSave 3" onclick="memSave(3)">
+      <input type="button" value="MemLoad 3" onclick="memLoad(3)">
+      <span class="idfont" id="memid3"> No Data </span>
+      <br>
+      <input type="button" value="MemSave 4" onclick="memSave(4)">
+      <input type="button" value="MemLoad 4" onclick="memLoad(4)">
+      <span class="idfont" id="memid4"> No Data </span>
+      <br>
+      <input type="button" value="MemSave 5" onclick="memSave(5)">
+      <input type="button" value="MemLoad 5" onclick="memLoad(5)">
+      <span class="idfont" id="memid5"> No Data </span>
+      <br>
+    </td>
+    <td>
+      <p> プログラムへの入力 </p>
+      <textarea cols="45" rows="8" id="input_str"></textarea>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <input type="button" value="Clear Output" onclick="clear_output()"> 
+      <input type="button" value="Run" onclick="save_buffer(); init_executor()" style="background-color: blue; color: white"> 
+      <input type="button" value="Stop" onclick="terminate()" style="background-color: red; color: white"> 
+      <input type="button" value="Download File" onclick="download_file()"> 
+      <input type="button" value="Clear Graphics" onclick="myclear()">
+      <br>
+      <select name="Basic Examples"
+	      onchange="read_file('examples3/' + this.options[this.selectedIndex].value)">
+	<option value="title"> プログラム例
+	<option value="kuku.js"> 九九の表
+	<option value="mandara.js"> マンダラの描画
+	<option value="random_segments.js"> ランダムな線分の描画
+	<option value="hopalong.js"> Hopalongアトラクタ
+	<option value="chaos_carpet.js"> シェルピンスキーカーペット
+	<option value="torus.js"> トーラスの描画
+	<option value="oekaki.js"> お絵描きプログラム
+	<option value="random_board.js"> ８パズルをランダムに動かす
+	<option value="bfs_board.js"> ８パズルを解く
+	<option value="hash8.js"> ８パズルをハッシュ表で解く
+      </select>
+      <select name="Basic Examples"
+	      onchange="read_file('answers/' + this.options[this.selectedIndex].value)">
+	<option value="title"> 課題解答例
+	<option value="ans02.js"> 第2回課題解答例
+	<option value="ans03.js"> 第3回課題解答例
+	<option value="ans04.js"> 第4回課題解答例
+	<option value="ans05.js"> 第5回課題解答例
+	<option value="ans06.js"> 第6回課題解答例
+	<option value="ans07.js"> 第7回課題解答例
+	<option value="ans08.js"> 第8回課題解答例
+	<option value="ans09.js"> 第9回課題解答例
+	<option value="ans10.js"> 第10回課題解答例
+	<option value="ans11.js"> 第11回課題解答例
+	<option value="ans12.js"> 第12回課題解答例
+      </select>
+      <select name="Basic Examples2"
+	      onchange="read_file('examples13/' + this.options[this.selectedIndex].value)">
+	<option value="title"> 本日のプログラム例
+	<option value="ex1.js"> プログラム1
+	<option value="ex2.js"> プログラム2
+	<option value="ex3.js"> プログラム3
+	<option value="ex4.js"> プログラム4
+	<option value="ex5.js"> プログラム5
+	<option value="ex6.js"> プログラム6
+	<!-- <option value="ex7.js"> プログラム7 -->
+	<!-- <option value="ex8.js"> プログラム8 -->
+	<!-- <option value="ex9.js"> プログラム9 -->
+	<!-- <option value="ex10.js"> プログラム10 -->
+	<!-- <option value="ex11.js"> プログラム11 -->
+	<!-- <option value="ex12.js"> プログラム12 -->
+	<!-- <option value="ex13.js"> プログラム13 -->
+	<!-- <option value="ex14.js"> プログラム14 -->
+	<!-- <option value="ex15.js"> プログラム15 -->
+	<!-- <option value="ex16.js"> プログラム16 -->
+	<!-- <option value="ex17.js"> プログラム17 -->
+	<!-- <option value="ex18.js"> プログラム18 -->
+      </select>
+      <br>
+      <input type="button" value="New Buffer" onclick="pushCurrent()" >
+      <input type="button" value="Delete Current" onclick="deleteCurrent()" >
+      <input type="button" value="Dupulicate Current" onclick="dupulicateCurrent()" >
+      <input type="button" id="back" value="<<" onclick="pop_stack()" >
+      <span id="stack_indicator"> 0:0 </span>
+      <input type="button" id="forward" value=">>" onclick="push_stack()">
+      <input type="checkbox" id="keybind" onchange="set_keybinding()">
+      Emacs binding 
+      <br>
+      <div id="editor">
+var foo = function(){
+    var i;
+    for (i = 0; i < 100; i++){
+        puts(i);
+    }
+};
+foo();
+      </div>
+    </td>
+    <td>
+      <canvas width="400" height="400" id="graphics" class="forprog" >
+      </canvas>
+    </td>
+  </tr>
+  <tr>
+    <td>
+<textarea cols="70" rows="10" id="output"  class="forprog">
+</textarea>
+    </td>
+    <td>
+      <itemize>
+	<li> puts(str)によって出力ウィンドウに文字列strを出力する．
+	<li> グラフィックの画面の 左下座標がが(0, 0)で右上が(1, 1)である．
+	<li> draw_line(pt1, pt2)によって点pt1から点pt2への直線を描画する．
+	  ただし，pt1, pt2は[x, y]となる長さ2の配列である．
+	<li> 黒く塗りつぶした四角形はdraw_rect(pt1, pt2)よって描画される．
+	  pt1, pt2はそれぞれ左下，右上の角の座標である．
+	<li> 巨大な英単語のリストwordlistを利用するにはuse_dict()をまず実行
+	  する．その後，wordlistが使えるようになる．
+	<li> 「プログラムへの入力」に書かれた文字列は input_string で参照
+	  することができる．
+  </tr>
+</table>
+
+<script srcx="http://ace.c9.io/build/src/ace.js"
+	src="src-min/ace.js"
+	type="text/javascript" charset="utf-8"></script>
+<script>
+  var editor = ace.edit("editor");
+  // editor.setTheme("ace/theme/monokai");
+  editor.setTheme("ace/theme/xcode");
+  editor.getSession().setMode("ace/mode/javascript");
+  editor.session.setOption("useWorker", true);
+  var defaultHandler = editor.getKeyboardHandler()
+  function set_keybinding(){
+     mycheckbox = document.getElementById("keybind")
+  
+     if (mycheckbox.checked)
+        editor.setKeyboardHandler('ace/keyboard/emacs');
+     else 
+        editor.setKeyboardHandler(defaultHandler);
+  }
+var ct, sizeX, sizeY;  
+function myclear(){
+    var mout = document.getElementById("graphics")
+    ct = mout.getContext('2d');
+    sizeX = mout.width
+    sizeY = mout.height
+    ct.lineWidth=1
+    curX = curY = 20
+    pos = 0
+    ct.fillStyle = '#ffeeee';
+    ct.fillRect(0, 0, sizeX, sizeY)
+}
+
+function myclear_board(){
+    ct.lineWidth=1
+    ct.fillStyle = '#ffeeee';
+    ct.fillRect(0, 0, sizeX, sizeY)
+    ct.beginPath()
+    ct.strokeStyle = '#000000';
+    for (var i = 1; i < 3; i++){
+       var x = i * 120 + 20
+       ct.moveTo(x, 20)
+       ct.lineTo(x, 3 * 120 + 20)
+       ct.moveTo(20, x)
+       ct.lineTo(3 * 120 + 20, x)
+    }
+    ct.moveTo(20, 20)			
+    ct.lineTo(20, 380)			
+    ct.lineTo(380, 380)			
+    ct.lineTo(380, 20)			
+    ct.lineTo(20, 20)			
+    draw_numbers()
+    ct.stroke()
+}
+
+var board_state = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+var moves_queue = []
+var board_finished = true			
+			
+function draw_numbers(){
+    ct.fillStyle = '#000000';
+    ct.font = "36px Courier"
+    for (var i = 0; i < 9; i++){
+      var ix = i % 3
+      var iy = Math.floor(i / 3)
+      if (board_state[i] == 0) {
+        ct.fillStyle = '#0000ff'
+        ct.fillRect(ix * 120 + 20, iy * 120 + 20, 120, 120)
+      } else {
+        ct.fillStyle = '#000000'
+        var x = ix * 120 + 20 + 50
+        var y = iy * 120 + 20 + 70
+        ct.fillText("" + board_state[i], x, y)
+      }
+    }
+}
+
+function move_x(func){
+   for (var i = 0; i < 9; i++){
+     if (board_state[i] == 0) break
+   }
+   if (i == 9) return
+   var ix = i % 3
+   var iy = Math.floor(i / 3)
+   func(ix, iy)
+}
+
+function move_down(){
+  move_x(function (ix, iy){
+   if (iy > 0){
+     board_state[ iy * 3 + ix ] = board_state[ (iy - 1) * 3 + ix ]
+     board_state[ (iy - 1) * 3 + ix ] = 0
+   }
+  })
+}
+function move_up(){
+  move_x(function (ix, iy){
+   if (iy < 2){
+     board_state[ iy * 3 + ix ] = board_state[ (iy + 1) * 3 + ix ]
+     board_state[ (iy + 1) * 3 + ix ] = 0
+   }
+  })
+}
+
+function move_right(){
+  move_x(function (ix, iy){
+   if (ix > 0){
+     board_state[ iy * 3 + ix ] = board_state[ iy * 3 + (ix - 1) ]
+     board_state[ iy * 3 + (ix - 1) ] = 0
+   }
+  })
+}
+
+function move_left(){
+  move_x(function (ix, iy){
+   if (ix < 2){
+     board_state[ iy * 3 + ix ] = board_state[ iy * 3 + (ix + 1) ]
+     board_state[ iy * 3 + (ix + 1) ] = 0
+   }
+  })
+}
+
+function play_moves_iter(st){
+   var c	    
+   if (moves_queue.length == 0 && board_finished){
+      var ele = document.getElementById("output")
+      ele.value += "** Board moves finished.\n"
+      return
+   }	    
+   if (st == 0 && moves_queue.length > 0){	    
+   // alert('play_moves_iter :' + board_state + ":" + board_finished + ":" + moves_queue)
+     c = moves_queue[0]
+     setTimeout(function (){play_moves_iter2(0, c)}, 20)
+   } else if (st == 1 && moves_queue.length > 0){
+     c = moves_queue.shift()
+     if (typeof(c) == 'object'){
+        board_state = c
+     } else if (c == 'u') move_up()
+     else if (c == 'd') move_down()
+     else if (c == 'r') move_right()
+     else if (c == 'l') move_left()
+     myclear_board()
+     setTimeout(function (){play_moves_iter(0)}, 20)
+   } else {
+     setTimeout(function (){play_moves_iter(0)}, 100)
+   }
+}
+
+function play_moves_iter2(width, c){
+   // alert('play_moves_iter2 :' + board_state + ":" + board_finished + ":" + moves_queue)
+     for (var i = 0; i < 9; i++){
+       if (board_state[i] == 0) break
+     }
+     if (i == 9) return
+     var ix = i % 3
+     var iy = Math.floor(i / 3)
+     if (c == 'u'){
+        if (iy < 2) {
+           ct.fillStyle = '#0000ff'
+           ct.fillRect(ix * 120 + 20, iy * 120 + 20, 120, 240)
+           ct.fillStyle = '#ffeeee'
+           ct.fillRect(ix * 120 + 20, iy * 120 + 20 + (120 - width), 120, 120)
+           ct.fillStyle = '#000000'
+           var x = ix * 120 + 20 + 50
+           var y = iy * 120 + 20 + 70 + (120 - width)
+           ct.fillText("" + board_state[(iy + 1) * 3 + ix], x, y)
+        }
+     } else  if (c == 'd'){
+        if (iy > 0){
+           ct.fillStyle = '#0000ff'
+           ct.fillRect(ix * 120 + 20, (iy - 1) * 120 + 20, 120, 240)
+           ct.fillStyle = '#ffeeee'
+           ct.fillRect(ix * 120 + 20, (iy - 1) * 120 + 20 + width, 120, 120)
+           ct.fillStyle = '#000000'
+           var x = ix * 120 + 20  + 50
+           var y = (iy - 1) * 120 + 20  + 70 + width
+           ct.fillText("" + board_state[(iy - 1) * 3 + ix], x, y)
+        }
+     }  else  if (c == 'l'){
+        if (ix < 2){
+           ct.fillStyle = '#0000ff'
+           ct.fillRect(ix * 120 + 20, iy * 120 + 20, 240, 120)
+           ct.fillStyle = '#ffeeee'
+           ct.fillRect(ix * 120 + 20 + (120 - width), iy * 120 + 20, 120, 120)
+           ct.fillStyle = '#000000'
+           var x = ix * 120 + 20 + (120 - width) + 50
+           var y = iy * 120 + 20  + 70
+           ct.fillText("" + board_state[iy * 3 + (ix + 1)], x, y)
+        }
+     }  else  if (c == 'r'){
+        if (ix > 0){
+           ct.fillStyle = '#0000ff'
+           ct.fillRect((ix - 1) * 120 + 20, iy * 120 + 20, 240, 120)
+           ct.fillStyle = '#ffeeee'
+           ct.fillRect((ix - 1) * 120 + 20 + width, iy * 120 + 20, 120, 120)
+           ct.fillStyle = '#000000'
+           var x = (ix - 1) * 120 + 20 + width + 50
+           var y = iy * 120 + 20  + 70
+           ct.fillText("" + board_state[iy * 3 + (ix - 1)], x, y)
+        }
+     }
+     if (width < 120){
+          // alert("here(" + width + ")")
+          setTimeout(function (){play_moves_iter2(width + 15, c)}, 15)
+     }else{
+          setTimeout(function (){play_moves_iter(1)}, 20)
+     }
+}
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,15 @@
+var move_list = [[1, 0], [0, 1], [1, 1], [2, 0], [0, 2]]
+
+function move_state(st, mv){
+    var [c0, e0, boat, c1, e1] = st
+    var [mc, me] = mv
+    if (boat == 0){
+	if (c0 >= mc && e0 >= me)
+	    return [c0 - mc, e0 - me, 1, c1 + mc, e1 + me]
+	else return null
+    } else {
+	if (c1 >= mc && e1 >= me)
+	    return [c0 + mc, e0 + me, 0, c1 - mc, e1 - me]
+	else return null
+    }
+}

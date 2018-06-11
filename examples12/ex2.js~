@@ -1,0 +1,29 @@
+
+function selection_sort(lst){
+    var n = lst.length
+    for (var i = 0; i< n; i++){
+        var m = lst[i]
+        var mj = i
+        for (var j = i + 1; j < n; j++){
+            if (m > lst[j]){
+                m = lst[j]
+                mj = j
+            }
+        }
+        [lst[mj], lst[i]] = [lst[i], lst[mj]]
+    }
+}
+
+function work(){
+    var lst = []
+    for (var i = 0; i < 10000; i++)
+        lst.push(Math.random())
+    var t1 = new Date()
+    selection_sort(lst)
+    var t2 = new Date()
+    puts((t2 - t1) + "ms")
+    puts(lst[0] + ":" + lst[5000] + ":" + lst[9999])
+}
+
+work()
+
