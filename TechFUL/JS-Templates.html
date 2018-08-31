@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS-Templates.md</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h3 id="executorでプログラムを開発するときのテンプレート">Executorでプログラムを開発するときのテンプレート</h3>
+<p>以下のコードをExecutorにコピーして使ってください．また，入力は配列<code>stdin</code>として定義してください．入力は関数<code>kadai</code>では<code>s</code>として与えられます．<code>s</code>は配列で，先頭のデータは<code>s[0]</code>となります．データが整数のときには関数<code>int</code>を通して利用してください．また，データが浮動小数点数の場合には<code>float</code>を一度通して利用してください．文字列の場合にはそのまま使ってください．</p>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token comment">// プログラムを試すために必要な入力 //</span>
+stdin <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">23</span><span class="token punctuation">,</span> <span class="token number">22</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">21.4</span><span class="token punctuation">,</span> <span class="token string">"abc"</span><span class="token punctuation">]</span>
+
+<span class="token comment">//プログラム本体//</span>
+<span class="token keyword">function</span> <span class="token function">kadai</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token keyword">var</span> n <span class="token operator">=</span> <span class="token function">int</span><span class="token punctuation">(</span>s<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token keyword">var</span> sum <span class="token operator">=</span> <span class="token number">0</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        sum <span class="token operator">+=</span> <span class="token function">float</span><span class="token punctuation">(</span>s<span class="token punctuation">[</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+    <span class="token function">puts</span><span class="token punctuation">(</span>sum <span class="token operator">/</span> n<span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">//-------この部分を付け加える--------//</span>
+<span class="token keyword">var</span> int <span class="token operator">=</span> parseInt
+<span class="token keyword">var</span> float <span class="token operator">=</span> parseFloat
+<span class="token function">kadai</span><span class="token punctuation">(</span>stdin<span class="token punctuation">)</span>
+<span class="token comment">//-----------------------------//       </span>
+</code></pre>
+<h3 id="techfulシステムにプログラムを提出するときのテンプレート">TechFULシステムにプログラムを提出するときのテンプレート</h3>
+<p>作成したプログラムをTechFULに提出するときは以下のようなテンプレートを使ってください．作成したプログラム<code>kadai</code> はそのままコピーして，その後ろに「この部分を付け加える」の部分をつけてください．入力はTechFULから与えれるので必要ありません．</p>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token comment">// プログラム本体 //</span>
+<span class="token keyword">function</span> <span class="token function">kadai</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token keyword">var</span> n <span class="token operator">=</span> <span class="token function">int</span><span class="token punctuation">(</span>s<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token keyword">var</span> sum <span class="token operator">=</span> <span class="token number">0</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        sum <span class="token operator">+=</span> <span class="token function">float</span><span class="token punctuation">(</span>s<span class="token punctuation">[</span>i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token punctuation">}</span>
+    <span class="token function">puts</span><span class="token punctuation">(</span>sum <span class="token operator">/</span> n<span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">//-------この部分を付け加える--------//</span>
+<span class="token keyword">var</span> puts <span class="token operator">=</span> console<span class="token punctuation">.</span>log
+<span class="token keyword">var</span> int <span class="token operator">=</span> parseInt
+<span class="token keyword">var</span> float <span class="token operator">=</span> parseFloat
+process<span class="token punctuation">.</span>stdin<span class="token punctuation">.</span><span class="token function">resume</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+process<span class="token punctuation">.</span>stdin<span class="token punctuation">.</span><span class="token function">setEncoding</span><span class="token punctuation">(</span><span class="token string">"utf8"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+process<span class="token punctuation">.</span>stdin<span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span>inputData<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">kadai</span><span class="token punctuation">(</span>inputData<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token string">'\n'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">//-------------------------------//                                               </span>
+</code></pre>
+<blockquote>
+<p>Written with <a href="https://stackedit.io/">StackEdit</a>.</p>
+</blockquote>
+</div>
+</body>
+
+</html>
