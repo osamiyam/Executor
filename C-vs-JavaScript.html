@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C-vs-JavaScript</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h2 id="cとjavascriptの比較">CとJavaScriptの比較</h2>
+<p>Linux 4.10.0 上で GCC 5.4 、NodeJS 8.11.1, および SpiderMonkey 45 を 10万個の要素のバブルソートを用いて性能比較した。 まず、Cのプログラムは以下のとおり。</p>
+<pre><code>#include &lt;stdio.h&gt; 
+#include &lt;stdlib.h&gt;
+#include &lt;time.h&gt;
+
+double * make_data(int n);
+void bsort(double *a, int n);
+
+double * make_data(int n){
+  double *a = (double *)malloc(sizeof(double) * n);
+  for (int i = 0; i &lt; n; i++)
+    a[i] = (double)rand() / RAND_MAX;
+  return a;
+}
+
+void bsort(double *a, int n){
+  for (int i = n - 1; i &gt;= 1; i--){
+    for (int j = 0; j &lt; i; j++)
+      if (a[j] &gt; a[j + 1]){
+	double tmp = a[j];
+	a[j] = a[j + 1];
+	a[j + 1] = tmp;
+      }
+  }
+}
+
+int main(){
+  int n = 100000;
+  double *a = make_data(n);
+  clock_t t1 = clock();
+  bsort(a, n);
+  clock_t t2 = clock();
+  printf("Time = %ld ms\n", (int)(t2 - t1) * 1000 / CLOCKS_PER_SEC);
+  return 1;
+}
+</code></pre>
+<p>このプログラムを<code>bubble.c</code>というファイル名でセーブする。さらにJavaScriptのプログラムを以下のように書く。</p>
+<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">var</span> print
+<span class="token keyword">if</span> <span class="token punctuation">(</span>print <span class="token operator">==</span> undefined<span class="token punctuation">)</span>
+    <span class="token keyword">var</span> puts <span class="token operator">=</span> console<span class="token punctuation">.</span>log
+<span class="token keyword">else</span>
+    <span class="token keyword">var</span> puts <span class="token operator">=</span> print
+
+<span class="token keyword">function</span> <span class="token function">make_data</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    a <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span>
+	a<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>Math<span class="token punctuation">.</span><span class="token function">random</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> a
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">bsort</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token keyword">var</span> n <span class="token operator">=</span> a<span class="token punctuation">.</span>length
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> i <span class="token operator">=</span> n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span> i <span class="token operator">&gt;=</span> <span class="token number">1</span><span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+	<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> i<span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span>a<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">&gt;</span> a<span class="token punctuation">[</span>j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+	    <span class="token keyword">var</span> tmp <span class="token operator">=</span> a<span class="token punctuation">[</span>j<span class="token punctuation">]</span>
+	    a<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> a<span class="token punctuation">[</span>j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span>
+	    a<span class="token punctuation">[</span>j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> tmp
+	<span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">var</span> a <span class="token operator">=</span> <span class="token function">make_data</span><span class="token punctuation">(</span><span class="token number">100000</span><span class="token punctuation">)</span>
+<span class="token keyword">var</span> t1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token function">bsort</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span>
+<span class="token keyword">var</span> t2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"Time = "</span> <span class="token operator">+</span> <span class="token punctuation">(</span>t2 <span class="token operator">-</span> t1<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">" ms"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>このプログラムを<code>bubble.js</code>としてセーブする。以下のようにそれぞれのプログラムを実行した。</p>
+<pre><code>osami-virtual-machine:yama718&gt; gcc -O3 bubble.c -o bubble
+osami-virtual-machine:yama719&gt; ./bubble 
+Time = 17820 ms
+osami-virtual-machine:yama720&gt; node bubble.js
+Time = 23616 ms
+osami-virtual-machine:yama721&gt; js bubble.js
+Time = 20958 ms
+</code></pre>
+<p>Cの方が若干速いという結果になったが、 JavaScriptがCに比べて動的な高級言語であること、特にJavaScriptの配列はCに比べてかなりフレキシブルな機能をもっていることなどを考えると NodeJS (V8エンジン）やSpiderMonkeyは驚異的に速いと言える。</p>
+<blockquote>
+<p>Written with <a href="https://stackedit.io/">StackEdit</a>.</p>
+</blockquote>
+</div>
+</body>
+
+</html>
