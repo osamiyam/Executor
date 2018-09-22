@@ -11,72 +11,73 @@
 <body class="stackedit">
   <div class="stackedit__html"><h2 id="cとjavascriptの比較">CとJavaScriptの比較</h2>
 <p>Linux 4.10.0 上で GCC 5.4 、NodeJS 8.11.1, および SpiderMonkey 45 を 10万個の要素のバブルソートを用いて性能比較した。 まず、Cのプログラムは以下のとおり。</p>
-<pre><code>#include &lt;stdio.h&gt; 
-#include &lt;stdlib.h&gt;
-#include &lt;time.h&gt;
-
-double * make_data(int n);
-void bsort(double *a, int n);
-
-double * make_data(int n){
-  double *a = (double *)malloc(sizeof(double) * n);
-  for (int i = 0; i &lt; n; i++)
-    a[i] = (double)rand() / RAND_MAX;
-  return a;
-}
-
-void bsort(double *a, int n){
-  for (int i = n - 1; i &gt;= 1; i--){
-    for (int j = 0; j &lt; i; j++)
-      if (a[j] &gt; a[j + 1]){
-	double tmp = a[j];
-	a[j] = a[j + 1];
-	a[j + 1] = tmp;
-      }
-  }
-}
-
-int main(){
-  int n = 100000;
-  double *a = make_data(n);
-  clock_t t1 = clock();
-  bsort(a, n);
-  clock_t t2 = clock();
-  printf("Time = %ld ms\n", (int)(t2 - t1) * 1000 / CLOCKS_PER_SEC);
-  return 1;
-}
+<pre><code>     1	#include &lt;stdio.h&gt;
+     2	#include &lt;stdlib.h&gt;
+     3	#include &lt;time.h&gt;
+     4	
+     5	double * make_data(int n);
+     6	void bsort(double *a, int n);
+     7	
+     8	
+     9	double * make_data(int n){
+    10	  double *a = (double *)malloc(sizeof(double) * n);
+    11	  for (int i = 0; i &lt; n; i++)
+    12	    a[i] = (double)rand() / RAND_MAX;
+    13	  return a;
+    14	}
+    15	
+    16	void bsort(double *a, int n){
+    17	  for (int i = n - 1; i &gt;= 1; i--){
+    18	    for (int j = 0; j &lt; i; j++)
+    19	      if (a[j] &gt; a[j + 1]){
+    20	        double tmp = a[j];
+    21	        a[j] = a[j + 1];
+    22	        a[j + 1] = tmp;
+    23	      }
+    24	  }
+    25	}
+    26	
+    27	int main(){
+    28	  int n = 100000;
+    29	  double *a = make_data(n);
+    30	  clock_t t1 = clock();
+    31	  bsort(a, n);
+    32	  clock_t t2 = clock();
+    33	  printf("Time = %ld ms\n", (int)(t2 - t1) * 1000 / CLOCKS_PER_SEC);
+    34	  return 0;
+    35	}
 </code></pre>
 <p>このプログラムを<code>bubble.c</code>というファイル名でセーブする。さらにJavaScriptのプログラムを以下のように書く。</p>
-<pre class=" language-javascript"><code class="prism  language-javascript"><span class="token keyword">var</span> print
-<span class="token keyword">if</span> <span class="token punctuation">(</span>print <span class="token operator">==</span> undefined<span class="token punctuation">)</span>
-    <span class="token keyword">var</span> puts <span class="token operator">=</span> console<span class="token punctuation">.</span>log
-<span class="token keyword">else</span>
-    <span class="token keyword">var</span> puts <span class="token operator">=</span> print
-
-<span class="token keyword">function</span> <span class="token function">make_data</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">{</span>
-    a <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
-    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span>
-	a<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>Math<span class="token punctuation">.</span><span class="token function">random</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    <span class="token keyword">return</span> a
-<span class="token punctuation">}</span>
-
-<span class="token keyword">function</span> <span class="token function">bsort</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span><span class="token punctuation">{</span>
-    <span class="token keyword">var</span> n <span class="token operator">=</span> a<span class="token punctuation">.</span>length
-    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> i <span class="token operator">=</span> n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span> i <span class="token operator">&gt;=</span> <span class="token number">1</span><span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-	<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> i<span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span>
-	<span class="token keyword">if</span> <span class="token punctuation">(</span>a<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">&gt;</span> a<span class="token punctuation">[</span>j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
-	    <span class="token keyword">var</span> tmp <span class="token operator">=</span> a<span class="token punctuation">[</span>j<span class="token punctuation">]</span>
-	    a<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> a<span class="token punctuation">[</span>j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span>
-	    a<span class="token punctuation">[</span>j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> tmp
-	<span class="token punctuation">}</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-<span class="token keyword">var</span> a <span class="token operator">=</span> <span class="token function">make_data</span><span class="token punctuation">(</span><span class="token number">100000</span><span class="token punctuation">)</span>
-<span class="token keyword">var</span> t1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token function">bsort</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span>
-<span class="token keyword">var</span> t2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"Time = "</span> <span class="token operator">+</span> <span class="token punctuation">(</span>t2 <span class="token operator">-</span> t1<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">" ms"</span><span class="token punctuation">)</span>
+<pre class=" language-javascript"><code class="prism  language-javascript">     <span class="token number">1</span>	<span class="token keyword">var</span> print
+     <span class="token number">2</span>	<span class="token keyword">if</span> <span class="token punctuation">(</span>print <span class="token operator">==</span> undefined<span class="token punctuation">)</span>
+     <span class="token number">3</span>	    <span class="token keyword">var</span> puts <span class="token operator">=</span> console<span class="token punctuation">.</span>log
+     <span class="token number">4</span>	<span class="token keyword">else</span>
+     <span class="token number">5</span>	    <span class="token keyword">var</span> puts <span class="token operator">=</span> print
+     <span class="token number">6</span>	
+     <span class="token number">7</span>	<span class="token keyword">function</span> <span class="token function">make_data</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span><span class="token punctuation">{</span>
+     <span class="token number">8</span>	    a <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+     <span class="token number">9</span>	    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span>
+    <span class="token number">10</span>		a<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>Math<span class="token punctuation">.</span><span class="token function">random</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token number">11</span>	    <span class="token keyword">return</span> a
+    <span class="token number">12</span>	<span class="token punctuation">}</span>
+    <span class="token number">13</span>	
+    <span class="token number">14</span>	<span class="token keyword">function</span> <span class="token function">bsort</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token number">15</span>	    <span class="token keyword">var</span> n <span class="token operator">=</span> a<span class="token punctuation">.</span>length
+    <span class="token number">16</span>	    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> i <span class="token operator">=</span> n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span> i <span class="token operator">&gt;=</span> <span class="token number">1</span><span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token number">17</span>		<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">var</span> j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> i<span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span>
+    <span class="token number">18</span>		<span class="token keyword">if</span> <span class="token punctuation">(</span>a<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">&gt;</span> a<span class="token punctuation">[</span>j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token number">19</span>		    <span class="token keyword">var</span> tmp <span class="token operator">=</span> a<span class="token punctuation">[</span>j<span class="token punctuation">]</span>
+    <span class="token number">20</span>		    a<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> a<span class="token punctuation">[</span>j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span>
+    <span class="token number">21</span>		    a<span class="token punctuation">[</span>j <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> tmp
+    <span class="token number">22</span>		<span class="token punctuation">}</span>
+    <span class="token number">23</span>	    <span class="token punctuation">}</span>
+    <span class="token number">24</span>	<span class="token punctuation">}</span>
+    <span class="token number">25</span>	
+    <span class="token number">26</span>	<span class="token keyword">var</span> a <span class="token operator">=</span> <span class="token function">make_data</span><span class="token punctuation">(</span><span class="token number">100000</span><span class="token punctuation">)</span>
+    <span class="token number">27</span>	<span class="token keyword">var</span> t1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token number">28</span>	<span class="token function">bsort</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span>
+    <span class="token number">29</span>	<span class="token keyword">var</span> t2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token number">30</span>	<span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"Time = "</span> <span class="token operator">+</span> <span class="token punctuation">(</span>t2 <span class="token operator">-</span> t1<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">" ms"</span><span class="token punctuation">)</span>
 </code></pre>
 <p>このプログラムを<code>bubble.js</code>としてセーブする。以下のようにそれぞれのプログラムを実行した。</p>
 <pre><code>osami-virtual-machine:yama718&gt; gcc -O3 bubble.c -o bubble
