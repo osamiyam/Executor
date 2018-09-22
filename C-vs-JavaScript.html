@@ -10,6 +10,7 @@
 
 <body class="stackedit">
   <div class="stackedit__html"><h2 id="cとjavascriptの比較">CとJavaScriptの比較</h2>
+<h4 id="１．バブルソート-ー配列のアクセス速度の比較ー">１．バブルソート　ー配列のアクセス速度の比較ー</h4>
 <p>Linux 4.10.0 上で GCC 5.4 、NodeJS 8.11.1, および SpiderMonkey 45 を 10万個の要素のバブルソートを用いて性能比較した。 まず、Cのプログラムは以下のとおり。</p>
 <pre><code>     1	#include &lt;stdio.h&gt;
      2	#include &lt;stdlib.h&gt;
@@ -88,7 +89,60 @@ Time = 23616 ms
 osami-virtual-machine:yama721&gt; js bubble.js
 Time = 20958 ms
 </code></pre>
-<p>Cの方が若干速いという結果になったが、 JavaScriptがCに比べて動的な高級言語であること、特にJavaScriptの配列はCに比べてかなりフレキシブルな機能をもっていることなどを考えると NodeJS (V8エンジン）やSpiderMonkeyは驚異的に速いと言える。</p>
+<p>Cの方が若干速い（SpiderMonkeyと比較して1.17倍）という結果になったが、 JavaScriptがCに比べて動的な高級言語であること、特にJavaScriptの配列はCに比べてかなりフレキシブルな機能をもっていることなどを考えると NodeJS (V8エンジン）やSpiderMonkeyは驚異的に速いと言える。</p>
+<h4 id="たらい関数（竹内関数）-ー関数呼び出し時間の比較ー">2. たらい関数（竹内関数）　ー関数呼び出し時間の比較ー</h4>
+<p>関数呼び出しの時間を比較してみる．Cのプログラムは以下のとおり：</p>
+<pre><code>     1	#include &lt;stdio.h&gt;
+     2	#include &lt;stdlib.h&gt;
+     3	#include &lt;time.h&gt;
+     4	
+     5	int tak(int x, int y, int z);
+     6	
+     7	int tak(int x, int y, int z){
+     8	  if (x &lt;= y) return y;
+     9	  else return tak(tak(x - 1, y, z), tak(y - 1, z, x), tak(z - 1, x, y));
+    10	}
+    11	
+    12	int main(){
+    13	  clock_t t1 = clock();
+    14	  int res = tak(16, 8, 0);
+    15	  clock_t t2 = clock();
+    16	  printf("Time = %ld ms\n", (long)(t2 - t1) * 1000 / CLOCKS_PER_SEC);
+    17	  printf("Result = %d\n", res);
+    18	  return 0;
+    19	}
+</code></pre>
+<p>一方，JavaScriptのプログラムは以下のようになる．</p>
+<pre class=" language-javascript"><code class="prism  language-javascript">     <span class="token number">1</span>	<span class="token keyword">var</span> print
+     <span class="token number">2</span>	<span class="token keyword">if</span> <span class="token punctuation">(</span>print <span class="token operator">==</span> undefined<span class="token punctuation">)</span>
+     <span class="token number">3</span>	    puts <span class="token operator">=</span> console<span class="token punctuation">.</span>log
+     <span class="token number">4</span>	<span class="token keyword">else</span>
+     <span class="token number">5</span>	    puts <span class="token operator">=</span> print
+     <span class="token number">6</span>	
+     <span class="token number">7</span>	<span class="token keyword">function</span> <span class="token function">tak</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span> y<span class="token punctuation">,</span> z<span class="token punctuation">)</span><span class="token punctuation">{</span>
+     <span class="token number">8</span>	    <span class="token keyword">if</span> <span class="token punctuation">(</span>x <span class="token operator">&lt;=</span> y<span class="token punctuation">)</span> <span class="token keyword">return</span> y
+     <span class="token number">9</span>	    <span class="token keyword">else</span> <span class="token keyword">return</span> <span class="token function">tak</span><span class="token punctuation">(</span><span class="token function">tak</span><span class="token punctuation">(</span>x <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> y<span class="token punctuation">,</span> z<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">tak</span><span class="token punctuation">(</span>y <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> z<span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">tak</span><span class="token punctuation">(</span>z <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> x<span class="token punctuation">,</span> y<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token number">10</span>	<span class="token punctuation">}</span>
+    <span class="token number">11</span>	
+    <span class="token number">12</span>	<span class="token keyword">var</span> t1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token number">13</span>	<span class="token keyword">var</span> res <span class="token operator">=</span> <span class="token function">tak</span><span class="token punctuation">(</span><span class="token number">16</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span>
+    <span class="token number">14</span>	<span class="token keyword">var</span> t2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token number">15</span>	<span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"Time = "</span> <span class="token operator">+</span> <span class="token punctuation">(</span>t2 <span class="token operator">-</span> t1<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">" ms"</span><span class="token punctuation">)</span>
+    <span class="token number">16</span>	<span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"Result = "</span> <span class="token operator">+</span> res<span class="token punctuation">)</span>
+</code></pre>
+<p>それぞれのプログラムを動かしてみる．</p>
+<pre><code>osami-virtual-machine:yama966&gt; gcc -O3 tak.c -o tak
+osami-virtual-machine:yama967&gt; ./tak
+Time = 52468 ms
+Result = 16
+osami-virtual-machine:yama968&gt; node tak.js
+Time = 133985 ms
+Result = 16
+osami-virtual-machine:yama969&gt; js tak.js
+Time = 126783 ms
+Result = 16
+</code></pre>
+<p>この場合，JavaScript は約2.5倍 C よりも時間がかかっている． さすがに，引数をスタックに乗せるのはCの方が圧倒的に有利である．</p>
 <blockquote>
 <p>Written with <a href="https://stackedit.io/">StackEdit</a>.</p>
 </blockquote>
