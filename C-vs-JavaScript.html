@@ -80,16 +80,49 @@
     <span class="token number">29</span>	<span class="token keyword">var</span> t2 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
     <span class="token number">30</span>	<span class="token function">puts</span><span class="token punctuation">(</span><span class="token string">"Time = "</span> <span class="token operator">+</span> <span class="token punctuation">(</span>t2 <span class="token operator">-</span> t1<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">" ms"</span><span class="token punctuation">)</span>
 </code></pre>
-<p>このプログラムを<code>bubble.js</code>としてセーブする。以下のようにそれぞれのプログラムを実行した。</p>
-<pre><code>osami-virtual-machine:yama718&gt; gcc -O3 bubble.c -o bubble
-osami-virtual-machine:yama719&gt; ./bubble 
-Time = 17820 ms
-osami-virtual-machine:yama720&gt; node bubble.js
-Time = 23616 ms
-osami-virtual-machine:yama721&gt; js bubble.js
-Time = 20958 ms
+<p>このプログラムを<code>bubble.js</code>としてセーブする。さらにJavaで同様のプログラムを作成すると<br>
+以下のようになる．</p>
+<pre><code>osami-virtual-machine:yama1015&gt; cat -n bubble.java
+     1	public class bubble{
+     2	    static int n = 100000;
+     3	    static double [] a = new double [n];
+     4	    public static void make_data(){
+     5		for (int i = 0; i &lt; n; i++)
+     6		    a[i] = Math.random();
+     7	    }
+     8	    public static void bsort(){
+     9		for (int i = n - 1; i &gt;= 1; i--){
+    10		    for (int j = 0; j &lt; i; j++)
+    11			if (a[j] &gt; a[j + 1]){
+    12			    double tmp = a[j];
+    13			    a[j] = a[j + 1];
+    14			    a[j + 1] = tmp;
+    15			}
+    16		}
+    17	    }
+    18	    public static void main(String [] args){
+    19		make_data();
+    20		long t1 = System.currentTimeMillis();
+    21		bsort();
+    22		long t2 = System.currentTimeMillis();
+    23		System.out.printf("Time = %d ms\n", t2 - t1);
+    24	    }
+    25	}
 </code></pre>
-<p>Cの方が若干速い（SpiderMonkeyと比較して1.17倍）という結果になったが、 JavaScriptがCに比べて動的な高級言語であること、特にJavaScriptの配列はCに比べてかなりフレキシブルな機能をもっていることなどを考えると NodeJS (V8エンジン）やSpiderMonkeyは驚異的に速いと言える。</p>
+<p>このプログラムは<code>bubble.java</code>としてセーブする．以下のようにそれぞれのプログラムを実行した。</p>
+<pre><code>osami-virtual-machine:yama1024&gt; gcc -O3 bubble.c -o bubble
+osami-virtual-machine:yama1025&gt; ./bubble 
+Time = 17334 ms
+osami-virtual-machine:yama1026&gt; js bubble.js
+Time = 20540 ms
+osami-virtual-machine:yama1027&gt; node bubble.js
+Time = 22901 ms
+osami-virtual-machine:yama1028&gt; javac bubble.java 
+osami-virtual-machine:yama1029&gt; java bubble 
+Time = 20724 ms
+</code></pre>
+<p>Cの方が若干速い（SpiderMonkeyと比較して1.17倍）という結果になったが、 JavaScriptがCに比べて動的な高級言語であること、特にJavaScriptの配列はCに比べてかなりフレキシブルな機能をもっていることなどを考えると NodeJS (V8エンジン）やSpiderMonkeyは驚異的に速いと言える。また、JavaもJavaScriptと同程度であるという<br>
+結果になった。</p>
 <h4 id="たらい関数（竹内関数）-ー関数呼び出し時間の比較ー">2. たらい関数（竹内関数）　ー関数呼び出し時間の比較ー</h4>
 <p>関数呼び出しの時間を比較してみる．Cのプログラムは以下のとおり：</p>
 <pre><code>     1	#include &lt;stdio.h&gt;
