@@ -39,6 +39,9 @@ function play_moves(moves){
     } /* for */
 }
 
+var int = parseInt
+var float = parseFloat
+
 var foo = function(event){
    try {
       eval(event.data);

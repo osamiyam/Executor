@@ -23,11 +23,36 @@ var exectime;
 var init_storage = function(){
      
 }
+var cp_techful = function() {
+   // alert("here")
+
+   var string = editor.getValue()
+   var tmp = document.createElement("div");
+   var pre = document.createElement('pre');
+
+   pre.style.webkitUserSelect = 'auto';
+   pre.style.userSelect = 'auto';
+   tmp.appendChild(pre).textContent =
+     "function kadai(input_string){\n" + string +
+"}\nvar puts = console.log\nvar int = parseInt\nvar float = parseFloat\nprocess.stdin.resume();\nprocess.stdin.setEncoding('utf8');\nprocess.stdin.on('data', function(inputData) {\n    kadai(inputData.toString().split('\\n'));\n});"
+
+   var s = tmp.style;
+   s.position = 'fixed';
+   s.right = '200%';
+
+   document.body.appendChild(tmp);
+   document.getSelection().selectAllChildren(tmp);
+
+   var result = document.execCommand("copy");
+
+   document.body.removeChild(tmp);
+}
+
 var init_executor = function (){
    if (executor == null){
       input = document.getElementById("input_str").value
-      var inputx = "var input_string = " + '"' + input + '"'
-      inputx = inputx.replace(/\n/g, "\\n") + "\n"
+      var inputx = "var input_string = " + JSON.stringify(input.split('\n'))
+      // inputx = inputx.replace(/\n/g, "\\n") + "\n"
       console.log(inputx)
       executor = new Worker("executor.js")
       exectime = new Date()
@@ -324,6 +349,7 @@ var resume_buffer = function(){
       <input type="button" value="Stop" onclick="terminate()" style="background-color: red; color: white"> 
       <input type="button" value="Download File" onclick="download_file()"> 
       <input type="button" value="Clear Graphics" onclick="myclear()">
+      <input type="button" value="Copy for TechFUL" onclick="cp_techful()">
       <br>
       <select name="Basic Examples"
 	      onchange="read_file('examples3/' + this.options[this.selectedIndex].value)">
@@ -416,8 +442,9 @@ foo();
 	  pt1, pt2はそれぞれ左下，右上の角の座標である．
 	<li> 巨大な英単語のリストwordlistを利用するにはuse_dict()をまず実行
 	  する．その後，wordlistが使えるようになる．
-	<li> 「プログラムへの入力」に書かれた文字列は input_string で参照
-	  することができる．
+	<li> 「プログラムへの入力」に書かれた文字列の配列として
+	  input_string で参照することができる．各行が文字列として一つの要素と
+	  なった配列になっている．
   </tr>
 </table>
 
