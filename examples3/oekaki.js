@@ -1,10 +1,13 @@
 // Oekaki //
 
-function work(prog){
+function work(progx){
     var step = 0.05;
     var pendown = true;
     var i;
     var s = "";
+    var prog = "";
+    for (i = 0; i < progx.length; i++)
+	prog += progx[i]
     cls();
     var curX = step, curY = step;
     for (i = 0; i < prog.length; i++ ){
