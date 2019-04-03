@@ -32,6 +32,8 @@ var cp_techful = function() {
 
    pre.style.webkitUserSelect = 'auto';
    pre.style.userSelect = 'auto';
+   // alert(JSON.stringify(string))
+   string = string.replace(/\r\n/g, '\n')
    tmp.appendChild(pre).textContent =
      "function kadai(input_string){\n" + string +
 "}\nvar puts = console.log\nvar int = parseInt\nvar float = parseFloat\nprocess.stdin.resume();\nprocess.stdin.setEncoding('utf8');\nprocess.stdin.on('data', function(inputData) {\n    kadai(inputData.toString().split('\\n'));\n});"
