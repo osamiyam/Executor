@@ -136,7 +136,7 @@ var init_executor = function (){
         var ele = document.getElementById("output")
         ele.value += "** Another program is running!\n"
     }
-    executor.postMessage(inputx + editor.getValue());
+    executor.postMessage(inputx + "\n" + editor.getValue());
 }
 var terminate = function(){
     var ele = document.getElementById("output")
